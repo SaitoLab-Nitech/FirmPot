@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <style type="text/css">
+        html { height: 100%; }
+        body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #3b3b3b}
+        #date { text-align: center; margin-top: 50px; font-size: 40; color: #ffffff}
+        #map-canvas { background-color: #3b3b3b; }
+        .datamaps-legend { color: white; right: -100px; position: relative; display: inline-block; text-align: center; }
+        .datamaps-legend dl { text-align: center; display: inline-block; position: static; }
+    </style>
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+    <script type="text/javascript" src="/static/datamaps.world.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.1.1/randomColor.min.js"></script>
+
+    <script type="text/javascript" src="/static/data.json"></script>
+    <script type="text/javascript">
+
+    function initialize() {
+
+        var map = new Datamap({
+            element: document.getElementById('map-canvas'),
+            responsive: true,
+            scope: 'world',
+            geographyConfig: { 
+                borderColor: '#404040',
+                highlightFillColor: '#A8A8A8',
+                highlightBorderColor: '#404040',
+            },
+            fills: {
+                'ten': '#8aabb0',
+                'thirty': '#6794dc',
+                'fifty': '#6771dc',
+                'seventy': '#8067dc',
+                'hundred': '#a367dc',
+                'more': '#713e8d',
+                defaultFill: '#A0A0A0',
+            },
+            data: {
+                'ten': {fillKey: 'ten'},
+                'thirty': {fillKey: 'thirty'},
+                'fifty': {fillKey: 'fifty'},
+                'seventy': {fillKey: 'seventy'},
+                'hundred': {fillKey: 'hundred'},
+                'more': {fillKey: 'more'},
+            }
+        });
+        window.map = map;
+        
+        map.legend({
+            legendTitle : "",
+        });
+
+
+        // Consolidate the cordinates so we have lesser number of starting nodes.
+        for (var i = 0; i < data.length; i++) {
+            data[i].src_lat = Math.floor(data[i].src_lat);
+            data[i].src_long = Math.floor(data[i].src_long);
+        }
+
+        var bubbles = [];
+
+        for (var i = 0; i < data.length; i++) {
+
+            var result = bubbles.find((bubble) => bubble.latitude === data[i].src_lat && bubble.longitude === data[i].src_long);
+
+            if (result) {
+                result.counter = result.counter + 1
+
+                if (result.radius < 10 ) {
+                    result.radius = result.radius + 1;
+                    result.fillKey = 'ten'
+                }
+                else if (result.radius < 30 ) {
+                    result.radius = result.radius + 1;
+                    result.fillKey = 'thirty'
+                }
+                else if (result.radius < 50 ) {
+                    result.fillKey = 'fifty'
+                }
+                else if (result.radius < 70 ) {
+                    result.fillKey = 'seventy'
+                }
+                else if (result.radius < 100 ) {
+                    result.fillKey = 'hundred'
+                }
+                else {
+                    result.fillKey = 'more'
+                }
+                
+            } else {
+                bubbles.push({
+                    name: data[i].src_ip,
+                    counter: 1,
+                    radius: 6,
+                    latitude: data[i].src_lat,
+                    longitude: data[i].src_long,
+                    borderWidth: 0,
+                    fillKey: "ten",
+                });
+            }
+
+            // Honeypot location
+            var result = bubbles.find((item) => item.latitude === data[i].dst_lat && item.longitude === data[i].dst_long);
+
+            if (!result) {
+                bubbles.push({
+                    name: data[i].dst_ip + ' (Honeypot)',
+                    counter: "---",
+                    radius: 10,
+                    latitude: data[i].dst_lat,
+                    longitude: data[i].dst_long,
+                    borderWidth: 1,
+                });
+            }
+        }
+
+        //draw bubbles for bombs
+        map.bubbles(bubbles, {
+            popupTemplate: function (geo, data) {
+                return ['<div class="hoverinfo"><strong>' +  data.name + '</strong>',
+                    //'<br/>(lat, lon) : (' +  data.latitude + ',' + data.longitude + ')',
+                    '<br/>count : ' +  data.counter + '',
+                    '</div>'].join('');
+            }
+        });
+
+        var counter = 0;
+        var dates = data.map(item => item["date"]);
+        dates = Array.from(new Set(dates));
+
+        // draw the arcs, rotating the data every 2 seconds
+        (function drawArcs(){
+        	map.arc([]);
+
+            var dailyData = [];
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].date === dates[counter]){
+                    dailyData.push({
+                        'src_lat': data[i].src_lat,
+                        'src_long': data[i].src_long,
+                        'dst_lat': data[i].dst_lat,
+                        'dst_long': data[i].dst_long
+                    });
+                }
+            }
+
+        	var arcData = [];
+        	//for (var i = 0; i < dailyData.length; i++) {
+            for (var i = 0; i < dailyData.length; i++) {
+        		var location = dailyData[i];
+        		arcData.push({
+        		    origin: { // src
+        		        latitude: location.src_lat,
+        		        longitude: location.src_long,
+        		    },
+        		    destination: { // dst (honeypot)
+        		        latitude: location.dst_lat,
+        		        longitude: location.dst_long,
+        		    },
+        		    options: {
+        		        strokeColor: randomColor({
+        		            luminosity: 'bright',
+        		            hue: 'yellow'
+        		        }),
+        		    }
+        		});
+        	}
+            if (dates[counter]){
+                document.getElementById("date").textContent = dates[counter] + " ( Observed IP Addresses : " + dailyData.length + " )";
+            } else {
+                document.getElementById("date").textContent = "Total Observed IP Addresses : " + data.length + " / " + dates.length + " days";
+            }
+
+            if ( counter >= dates.length){
+                counter = 0;
+            } else {
+                counter = counter + 1;
+            }
+
+        	map.arc(arcData, {
+        	    strokeWidth: 1,
+        	    arcSharpness: 1.4,
+        	    strokeColor: 'rgba(102, 224, 255, 0.95)'
+        	});
+
+        	setTimeout(drawArcs, 2000);
+        })();
+    }
+
+    window.addEventListener('resize', function(event){
+        map.resize();
+    });
+
+    </script>
+  </head>
+  <body onload="initialize()">
+    <div id="date"></div>
+    <div id="map-canvas"></div>
+  </body>
+</html>

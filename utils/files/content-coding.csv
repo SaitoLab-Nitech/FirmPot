@@ -1,0 +1,13 @@
+Name,Description,Reference,Notes
+aes128gcm,AES-GCM encryption with a 128-bit content encryption key,[RFC8188],
+br,Brotli Compressed Data Format,[RFC7932],
+compress,"UNIX ""compress"" data format [Welch, T., ""A Technique for High Performance Data Compression"", IEEE Computer 17(6), June 1984.]",[RFC7230],Section 4.2.1
+deflate,"""deflate"" compressed data ([RFC1951]) inside the ""zlib"" data format ([RFC1950])",[RFC7230],Section 4.2.2
+exi,W3C Efficient XML Interchange,[W3C Recommendation: Efficient XML Interchange (EXI) Format],
+gzip,GZIP file format [RFC1952],[RFC7230],Section 4.2.3
+identity,"Reserved (synonym for ""no encoding"" in Accept-Encoding)",[RFC7231],Section 5.3.4
+pack200-gzip,Network Transfer Format for Java Archives,[JSR 200: Network Transfer Format for Java][Kumar_Srinivasan][John_Rose],
+x-compress,Deprecated (alias for compress),[RFC7230],Section 4.2.1
+x-gzip,Deprecated (alias for gzip),[RFC7230],Section 4.2.3
+zstd,"A stream of bytes compressed using the Zstandard
+        protocol",[RFC-kucherawy-rfc8478bis-05],
