@@ -35,6 +35,7 @@ git clone https://github.com/devttys0/sasquatch
 sudo pip3 install cstruct
 git clone https://github.com/sviehb/jefferson
 (cd jefferson && sudo python3 setup.py install)
+pip3 install python-lzo
 
 # 3. Install ubi_reader
 sudo apt-get install -y liblzo2-dev
