@@ -61,9 +61,9 @@ CONTAINER ID   IMAGE          COMMAND          CREATED          STATUS          
 ## 4. Scan the web application and collect the web interaction
 - Run `scanner.py` to specify the container's IP address with `-i` option
     - IPaddress should start with http or https 
-    - `--auto-login` is option for setting initial password 
+    - `--login-auto` is option for setting initial password 
 ```
-user@host:~/FirmPot$ python3 scanner.py -i https://172.20.0.2 --auto-login
+user@host:~/FirmPot$ python3 scanner.py -i https://172.20.0.2 --login-auto
 ```
 ![](img/4_scanner.gif)
 
